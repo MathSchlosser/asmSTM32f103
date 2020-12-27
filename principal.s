@@ -1,30 +1,32 @@
-;----------------------------------------------------------------
-;	Project: 	Simple baremetal software in ASM for ARM arch
+;-------------------------------------------------------------------------
+;	Project: 	Simple baremetal software in ASM for ARM architecture
 ;	Author: 	Matheus Schlosser Basso
 ;	Version:	1.0.0
 ;	Date:		12/2020
-;	uC:			STM32f103c8
+;	Board:		Bluepill -> STM32f103c8 
 ;	Software:	Keil uVison 5
-;----------------------------------------------------------------
+;-------------------------------------------------------------------------
 			AREA mySection4, DATA
 			ALIGN
 				
-;------------- Periferics ----------------------------------
+;------------- Periferics ------------------------------------------------
 RCC			EQU		0x40021000			
 Port_C		EQU		0x40011000
 Port_B		EQU		0x40010C00
 Port_A		EQU		0x40010800
 
-;------------- OffSets -------------------------------------
-rdOs		EQU		0x08		;OffSet para leitura de GPIO
+;------------- OffSets ----------------------------------------------------
+rdOs		EQU		0x08		;GPIO reading Offset
 
-;------------- SRAM ----------------------------------------
+;------------- SRAM -------------------------------------------------------
 sramBase	EQU		0x20000000
-
-;------------- Data ----------------------------------------
-str1		dcb		"Teste",0
-str1_		space	10
-;-----------------------------------------------------------
+			
+;------------- Data -------------------------------------------------------
+;CR			EQU		0x0D ;Finish string char
+str1		DCB		"Hello ",0
+str2		DCB		"ASM Rules",0
+		
+;--------------------------------------------------------------------------
 			
 			AREA mySection3, CODE, READONLY
 			EXPORT myApplication
@@ -33,57 +35,24 @@ str1_		space	10
 
 myApplication
 			
-;----------- Config runtimes -------------------------
+;----------- Config runtimes ----------------------------------------------
+			;BL			dataMove
 			BL			gpioInit
 			BL			lcdConfig
 
 ;---------- Print initial msg
-			LDR 		R2, ='T'
-			BL			printMen
-			LDR 		R2, ='E'
-			BL			printMen
-			LDR 		R2, ='S'
-			BL			printMen
-			LDR 		R2, ='T'
-			BL			printMen
-			LDR 		R2, ='E'
-			BL			printMen
-			LDR 		R2, =' '
-			BL			printMen
+			LDR			R5, =str1
+			BL			printStr
 
 ;---------- Print an int value converted to ascii
 			LDR 		R2, =1
-			ADD 		R2, #0x30 ;Int -> ASCII = num + 0x30
-			BL			printMen
+			BL			printInt
 
 ;---------- Print scnd line
 			BL			newLine
-			LDR 		R2, ='A'
-			BL			printMen
-			LDR 		R2, ='S'
-			BL			printMen
-			LDR 		R2, ='S'
-			BL			printMen
-			LDR 		R2, ='E'
-			BL			printMen
-			LDR 		R2, ='M'
-			BL			printMen
-			LDR 		R2, ='B'
-			BL			printMen
-			LDR 		R2, ='L'
-			BL			printMen
-			LDR 		R2, ='Y'
-			BL			printMen
-			LDR 		R2, =' '
-			BL			printMen
-			LDR 		R2, ='Y'
-			BL			printMen
-			LDR 		R2, ='E'
-			BL			printMen
-			LDR 		R2, ='A'
-			BL			printMen
-			LDR 		R2, ='H'
-			BL			printMen
+			
+			LDR			R5, =str2
+			BL			printStr
 			
 ;----------- Inital test runtimes --------------------
 ; Here I try just to play around moving values to SRAM
@@ -98,7 +67,7 @@ loop
 				
 			B			loop							
 
-;------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
 lcdConfig	proc
 ;---------- 16x2 8bit LDC Mode
 			push 		{lr}
@@ -113,12 +82,14 @@ lcdConfig	proc
 			LDR 		r0, =2_0000000000111000
 			
 			STR 		r0, [r1, #0x0c]
-			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1
+
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1
 			
 			BL 			timer
-		
+			
+;------------------------------------------		
 			LDR 		r1, =Port_B
 			
 			LDR 		r0, =2_0000000000000000
@@ -136,11 +107,14 @@ lcdConfig	proc
 			LDR 		r0, =2_0000000000001110
 			
 			STR 		r0, [r1, #0x0c]
-			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1
+
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1
 				
 			BL			timer
+
+;--------------------------------------------
 			
 			LDR 		r1, =Port_B
 			
@@ -160,8 +134,9 @@ lcdConfig	proc
 			
 			STR 		r0, [r1, #0x0c]
 			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1	
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
 			
 			BL 			timer
 			
@@ -182,11 +157,14 @@ lcdConfig	proc
 			LDR 		r0, =2_0000000000000110
 			
 			STR 		r0, [r1, #0x0c]
-			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1	
+
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
 			
 			BL 			timer
+
+;---------------------------------------------
 						
 			LDR 		r1, =Port_B
 			
@@ -198,7 +176,7 @@ lcdConfig	proc
 			BX 			LR
 			endp
 				
-;------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
 newLine		PROC
 			PUSH 		{LR}
 			LDR 		r1, =Port_B
@@ -211,11 +189,14 @@ newLine		PROC
 			LDR 		r2, =2_11000000	
 			
 			STR 		r2, [r1, #0x0c]
-			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1	
+
+;;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
 			
 			BL 			timer
+			
+;---------------------------------------------
 			
 			LDR 		r1, =Port_B
 			
@@ -227,7 +208,7 @@ newLine		PROC
 			BX			LR
 			ENDP
 				
-;------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
 clearSc		PROC
 			PUSH		{LR}
 			LDR 		r1, =Port_B
@@ -255,9 +236,14 @@ clearSc		PROC
 			BX			LR
 			ENDP
 				
-;------------------------------------------------------------
-printMen	PROC
+;-------------------------------------------------------------------------------------------------------------
+printStr	PROC
 			PUSH 		{LR}
+			
+nextChar	LDRB 		r2, [r5], #1 ; Load the first byte into R2
+			CMP 		r2, #0
+			BEQ			outRt
+			
 			LDR 		r1, =Port_B
 			
 			LDR 		r0, =2_0000000000000011
@@ -268,10 +254,49 @@ printMen	PROC
 									
 			STR 		r2, [r1, #0x0c]
 			
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1	
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
 			
 			BL 			timer
+
+;--------------------------------------------
+			
+			LDR 		r1, =Port_B
+			
+			LDR 		r0, =2_0000000000000001
+			
+			STR 		r0, [r1, #0x0c]
+			
+			BAL			nextChar
+outRt
+			POP			{PC}
+			BX			LR
+			ENDP
+
+;-------------------------------------------------------------------------------------------------------------
+printInt	PROC
+			PUSH 		{LR}
+			
+			ADD 		R2, #0x30 ;Int -> ASCII = num + 0x30
+			
+			LDR 		r1, =Port_B
+			
+			LDR 		r0, =2_0000000000000011
+			
+			STR 		r0, [r1, #0x0c]
+			
+			LDR 		r1, =Port_A
+									
+			STR 		r2, [r1, #0x0c]
+			
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
+			
+			BL 			timer
+
+;--------------------------------------------
 			
 			LDR 		r1, =Port_B
 			
@@ -283,8 +308,8 @@ printMen	PROC
 			BX			LR
 			ENDP
 
-;------------------------------------------------------------
-timer		proc
+;-------------------------------------------------------------------------------------------------------------
+timer		PROC
 			push 		{lr}
 			
 tm			SUBS 		R4, R4, #1
@@ -294,9 +319,9 @@ tm			SUBS 		R4, R4, #1
 			
 			pop 		{pc}
 			BX			LR
-			endp
+			ENDP
 
-;------------------------------------------------------------			
+;-------------------------------------------------------------------------------------------------------------			
 toggleOnOff	PROC
 ;---------- Turn on PC13 and PB11
 			
@@ -335,12 +360,12 @@ toggleOnOff	PROC
 			BX			LR
 			ENDP
 				
-;------------------------------------------------------------
+;-------------------------------------------------------------------------------------------------------------
 gpioRead	proc
 			LDR			r0, =Port_C
 			MOV			r1, #rdOs
 			ORR 		r0, r0, r1
-			LDR 		r1, [r0, #0x01] ;OffSet deslocado em 1 = 0x09
+			LDR 		r1, [r0, #0x01] ;OffSet 0x08 + 0x01
 			LSR			r1, #6 ; R1 >> 6 -> 0100 0000 >> 0000 0001 
 
 ;---------	If r1 = 1 then call sum
@@ -366,9 +391,10 @@ dc			SUBS 		R0, R0, #1
 
 ;---------	Runtime ending
 endRd		BX 			LR
-			endp
-;-----------------------------------------------------------------------------------------------------------
-gpioInit	proc
+			ENDP
+				
+;-------------------------------------------------------------------------------------------------------------
+gpioInit	PROC
 			
 ;---------- RCC APB1-> Enable 	| 	offset 0x18
 ;----------	Every port used in the program must be enabled otherwise it wont work -> See STM user ref RM008		
@@ -399,27 +425,28 @@ gpioInit	proc
 			
 			
 			BX			LR
-			endp
+			ENDP
 				
 ;----------------------------------------------------------------------------------------------------------
-dataMove	proc
-			mov 		r0, #2
-			ldr			r1, =sramBase
-			str			r0, [r1, #0x305]
+dataMove	PROC
 			
-			mov			r0, #0xFFFFFF0A
-			ldr 		r1, =sramBase
-			str			r0, [r1, #0x300]
+			MOV 		r0, #2
+			LDR			r1, =sramBase
+			STR			r0, [r1, #0x305]
 			
-			mov			r0, #0xFFFFFF0B
-			ldr 		r1, =sramBase
-			str			r0, [r1, #0x301]
+			MOV			r0, #0xFFFFFF0A
+			LDR 		r1, =sramBase
+			STR			r0, [r1, #0x300]
 			
-			ldr 		r2, [r1, #0x301]
+			MOV			r0, #0xFFFFFF0B
+			LDR 		r1, =sramBase
+			STR			r0, [r1, #0x301]
+			
+			LDR 		r2, [r1, #0x301]
 												
 			BX			LR
-			endp
+			ENDP
 				
-;-------------------------------------------------------------
+;----------------------------------------------------------------------------------------------------------
 			ALIGN
 			END
