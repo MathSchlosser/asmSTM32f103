@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------
 ;	Project: 	Simple baremetal software in ASM for ARM architecture
 ;	Author: 	Matheus Schlosser Basso
-;	Version:	1.0.0
+;	Version:	1.1.0
 ;	Date:		12/2020
 ;	Board:		Bluepill -> STM32f103c8 
 ;	Software:	Keil uVison 5
@@ -25,7 +25,8 @@ sramBase	EQU		0x20000000
 ;CR			EQU		0x0D ;Finish string char
 str1		DCB		"Hello ",0
 str2		DCB		"ASM Rules",0
-		
+str3		DCB		"GPIO Read Test",0
+str4		DCB		"Pressed: ",0
 ;--------------------------------------------------------------------------
 			
 			AREA mySection3, CODE, READONLY
@@ -36,35 +37,52 @@ str2		DCB		"ASM Rules",0
 myApplication
 			
 ;----------- Config runtimes ----------------------------------------------
-			;BL			dataMove
 			BL			gpioInit
 			BL			lcdConfig
 
 ;---------- Print initial msg
-			LDR			R5, =str1
-			BL			printStr
+			;LDR			R5, =str1
+			;BL			printStr
 
 ;---------- Print an int value converted to ascii
-			LDR 		R2, =1
-			BL			printInt
+			;LDR 		R2, =1
+			;BL			printInt
 
 ;---------- Print scnd line
-			BL			newLine
+			;BL			newLine
 			
-			LDR			R5, =str2
-			BL			printStr
+			;LDR			R5, =str2
+			;BL			printStr
 			
-;----------- Inital test runtimes --------------------
-; Here I try just to play around moving values to SRAM
-; These runtimes are just tests
+			;LDR			r4, =10000000
+			;BL			timer
+			;BL			clearScr
+			;LDR			r4, =1000
+			;BL			timer
 			
-			;BL			dataMove
+;----------- Inital SRAM runtimes --------------------
+			
+			BL			sramInit
 
 ;----------- While(true) -----------------------------
 loop		
-			BL			gpioRead
+			;LDR			R5, =str3
+			;BL			printStr
+			;BL			newLine
+			;LDR			R5, =str4
+			;BL			printStr
+			
+			;BL			gpioRead
 			BL			toggleOnOff		
-				
+
+;---------- Call timer with R4 as parameter
+			;LDR	 		r4, =100000
+			;LDR	 	r4, =1	
+			;BL			timer
+;---------------------------------------------
+			;BL			clearScr
+
+			
 			B			loop							
 
 ;-------------------------------------------------------------------------------------------------------------
@@ -84,8 +102,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1
 			
 			BL 			timer
 			
@@ -109,8 +127,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1
 				
 			BL			timer
 
@@ -159,8 +177,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1	
 			
 			BL 			timer
 
@@ -190,9 +208,9 @@ newLine		PROC
 			
 			STR 		r2, [r1, #0x0c]
 
-;;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+;---------- Call timer with R4 as parameter
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1	
 			
 			BL 			timer
 			
@@ -209,7 +227,7 @@ newLine		PROC
 			ENDP
 				
 ;-------------------------------------------------------------------------------------------------------------
-clearSc		PROC
+clearScr	PROC
 			PUSH		{LR}
 			LDR 		r1, =Port_B
 			
@@ -221,12 +239,14 @@ clearSc		PROC
 			LDR 		r0, =2_0000000000000001
 			
 			STR 		r0, [r1, #0x0c]
-			
+
+;---------- Call timer with R4 as parameter
 			LDR	 		r4, =10000
 			;LDR	 	r4, =1	
 			
 			BL 			timer
 			
+;-----------------------------------------------
 			LDR 		r1, =Port_B
 			
 			LDR 		r0, =2_0000000000000000
@@ -255,8 +275,8 @@ nextChar	LDRB 		r2, [r5], #1 ; Load the first byte into R2
 			STR 		r2, [r1, #0x0c]
 			
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1	
 			
 			BL 			timer
 
@@ -291,8 +311,8 @@ printInt	PROC
 			STR 		r2, [r1, #0x0c]
 			
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1	
 			
 			BL 			timer
 
@@ -337,7 +357,7 @@ toggleOnOff	PROC
 			MOV			r0, #0x800 ;0000 1000 0000 0000
 			STR			r0, [r1, #0x0C]
 			
-			
+			;LDR			r4, =1
 			LDR 		R4, =100000
 			BL 			timer
 
@@ -353,6 +373,7 @@ toggleOnOff	PROC
 			MOV			r0, #0x000 ;0000 1000 0000 0000
 			STR			r0, [r1, #0x0C]
 			
+			;LDR			r4, =1
 			LDR 		R4, =100000
 			BL 			timer
 
@@ -362,6 +383,7 @@ toggleOnOff	PROC
 				
 ;-------------------------------------------------------------------------------------------------------------
 gpioRead	proc
+			PUSH		{LR}
 			LDR			r0, =Port_C
 			MOV			r1, #rdOs
 			ORR 		r0, r0, r1
@@ -375,21 +397,29 @@ gpioRead	proc
 ;---------	Else, exits the runtime
 			B			endRd	
 
-;---------	R5 += 1
-sum			ADD			r5, r5, #1
+;---------	read from sram 0x300 offset and R5 += 1
 			
-;---------	Move to SRAM the value in R5 -> Must be implemented
-			;LDR 		r4, [sramBase, #0x300]
+sum			LDR			r0, =sramBase
+			LDR			r2, [r0, #0x3e6]
+			ADD			r2, r2, #1
+			
+;---------	Move to SRAM the new value to R5
+			STR 		r2, [r0, #0x3e6]
+
+;---------	Print the Sram value to LCD
+			BL			printInt
+
 
 ;---------	Delay debounce
-			;LDR	 	R0, =1000
-			LDR	 		R0, =1	
+			LDR	 	R0, =1000
+			;LDR	 		R0, =1	
 			
 dc			SUBS 		R0, R0, #1
 			NOP
 			BNE  		dc
 
 ;---------	Runtime ending
+			POP			{PC}
 endRd		BX 			LR
 			ENDP
 				
@@ -428,22 +458,12 @@ gpioInit	PROC
 			ENDP
 				
 ;----------------------------------------------------------------------------------------------------------
-dataMove	PROC
+sramInit	PROC
 			
-			MOV 		r0, #2
+			MOV 		r0, #0
 			LDR			r1, =sramBase
-			STR			r0, [r1, #0x305]
-			
-			MOV			r0, #0xFFFFFF0A
-			LDR 		r1, =sramBase
-			STR			r0, [r1, #0x300]
-			
-			MOV			r0, #0xFFFFFF0B
-			LDR 		r1, =sramBase
-			STR			r0, [r1, #0x301]
-			
-			LDR 		r2, [r1, #0x301]
-												
+			STR			r0, [r1, #0x3e6]
+													
 			BX			LR
 			ENDP
 				
