@@ -41,24 +41,24 @@ myApplication
 			BL			lcdConfig
 
 ;---------- Print initial msg
-			;LDR			R5, =str1
-			;BL			printStr
+			LDR			R5, =str1
+			BL			printStr
 
 ;---------- Print an int value converted to ascii
-			;LDR 		R2, =1
-			;BL			printInt
+			LDR 		R2, =1
+			BL			printInt
 
 ;---------- Print scnd line
-			;BL			newLine
+			BL			newLine
 			
-			;LDR			R5, =str2
-			;BL			printStr
+			LDR			R5, =str2
+			BL			printStr
 			
-			;LDR			r4, =10000000
-			;BL			timer
-			;BL			clearScr
-			;LDR			r4, =1000
-			;BL			timer
+			LDR			r4, =10000000
+			BL			timer
+			BL			clearScr
+			LDR			r4, =1000
+			BL			timer
 			
 ;----------- Inital SRAM runtimes --------------------
 			
@@ -66,13 +66,13 @@ myApplication
 
 ;----------- While(true) -----------------------------
 loop		
-			;LDR			R5, =str3
-			;BL			printStr
-			;BL			newLine
-			;LDR			R5, =str4
-			;BL			printStr
+			LDR			R5, =str3
+			BL			printStr
+			BL			newLine
+			LDR			R5, =str4
+			BL			printStr
 			
-			;BL			gpioRead
+			BL			gpioRead
 			BL			toggleOnOff		
 
 ;---------- Call timer with R4 as parameter
@@ -80,7 +80,7 @@ loop
 			;LDR	 	r4, =1	
 			;BL			timer
 ;---------------------------------------------
-			;BL			clearScr
+			BL			clearScr
 
 			
 			B			loop							
@@ -102,8 +102,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1
 			
 			BL 			timer
 			
@@ -127,8 +127,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1
 				
 			BL			timer
 
@@ -153,8 +153,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 			
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+			LDR	 		r4, =10000
+			;LDR	 	r4, =1	
 			
 			BL 			timer
 			
@@ -177,8 +177,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			LDR	 		r4, =10000
-			;LDR	 	r4, =1	
+			;LDR	 		r4, =10000
+			LDR	 	r4, =1	
 			
 			BL 			timer
 
@@ -419,8 +419,8 @@ dc			SUBS 		R0, R0, #1
 			BNE  		dc
 
 ;---------	Runtime ending
-			POP			{PC}
-endRd		BX 			LR
+endRd		POP			{PC}
+			BX 			LR
 			ENDP
 				
 ;-------------------------------------------------------------------------------------------------------------
