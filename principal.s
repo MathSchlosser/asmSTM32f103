@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------
 ;	Project: 	Simple baremetal software in ASM for ARM architecture
 ;	Author: 	Matheus Schlosser Basso
-;	Version:	1.1.1
+;	Version:	1.2.0
 ;	Date:		12/2020
 ;	Board:		Bluepill -> STM32f103c8 
 ;	Software:	Keil uVison 5
@@ -54,9 +54,11 @@ myApplication
 			LDR			R5, =str2
 			BL			printStr
 			
-			LDR			r4, =2000000
+			LDR			r4, =1000000
 			BL			timer
+			
 			BL			clearScr
+			
 			LDR			r4, =1000
 			BL			timer
 			
@@ -75,7 +77,7 @@ loop
 			BL			gpioRead
 ;---------	Print the Sram value to LCD from GPIORead subruntime
 			LDR			r0, =sramBase
-			LDR			r2, [r0, #0x3e7]
+			LDR			r2, [r0, #0x3fd]
 			BL			printInt
 			
 			LDR			r0, =sramBase
@@ -85,9 +87,9 @@ loop
 			BL			toggleOnOff		
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =100000
+			LDR	 		r4, =10000
 			;LDR	 	r4, =1	
-			;BL			timer
+			BL			timer
 ;---------------------------------------------
 			BL			clearScr
 
@@ -111,8 +113,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1
+			;LDR	 		r4, 1
+			LDR	 		r4, =10000
 			
 			BL 			timer
 			
@@ -136,8 +138,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1
+			;LDR	 	r4, 1
+			LDR	 		r4, =10000
 				
 			BL			timer
 
@@ -186,8 +188,8 @@ lcdConfig	proc
 			STR 		r0, [r1, #0x0c]
 
 ;---------- Call timer with R4 as parameter
-			;LDR	 		r4, =10000
-			LDR	 	r4, =1	
+			;LDR	 		r4, 1
+			LDR	 		r4, =10000	
 			
 			BL 			timer
 
@@ -409,38 +411,32 @@ gpioRead	proc
 ;---------	read from sram 0x300 offset and R5 += 1
 sum			LDR			r0, =sramBase
 			LDR			r2, [r0, #0x3e6]
-			LDR			r3, [r0, #0x3e7]
+			LDR			r3, [r0, #0x3fd]
 
 ;---------- Sum to values less or equal to 9 -> So LCD can show it
 			ADD			r2, r2, #1
 
-			CMP			r2, #10
+			CMP			r2, #9
 			
-			BLT			store						
-
-;---------- Increment the dec and starts incrementing the unit
+			BLE			store
+			
+			LDR			r2, =0
 			ADD			r3, r3, #1
-			LDR			r2, =0			
 			
-			CMP			r3, #10
+			CMP			r3, #9
 			
-			BLT			store2dig
+			BLE			store
 			
 			LDR			r3, =0
-			
-			B			toEndRd
-			
-;---------	Move to SRAM the new value to R2
-store		STR 		r2, [r0, #0x3e6]
-			B			toEndRd
+			;B			toEndRd
 
-;---------	Runtime to store 2 digits to LCD
-store2dig	STR 		r2, [r0, #0x3e6]
-			STR			r3, [r0, #0x3e7]
+;---------	Runtime to store 2 digits to sRam
+store		STR 		r2, [r0, #0x3e6]
+			STR			r3, [r0, #0x3fd]
 
 toEndRd				
 ;---------	Delay debounce
-			LDR	 	R0, =1000
+			LDR	 		R0, =1000
 			;LDR	 		R0, =1	
 			
 dc			SUBS 		R0, R0, #1
@@ -492,6 +488,7 @@ sramInit	PROC
 			MOV 		r0, #0
 			LDR			r1, =sramBase
 			STR			r0, [r1, #0x3e6]
+			STR			r0, [r1, #0x3fd]
 													
 			BX			LR
 			ENDP
