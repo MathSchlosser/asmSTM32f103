@@ -1,7 +1,7 @@
 ;-------------------------------------------------------------------------
 ;	Project: 	Simple baremetal software in ASM for ARM architecture
 ;	Author: 	Matheus Schlosser Basso
-;	Version:	1.1.0
+;	Version:	1.1.1
 ;	Date:		12/2020
 ;	Board:		Bluepill -> STM32f103c8 
 ;	Software:	Keil uVison 5
@@ -54,7 +54,7 @@ myApplication
 			LDR			R5, =str2
 			BL			printStr
 			
-			LDR			r4, =10000000
+			LDR			r4, =2000000
 			BL			timer
 			BL			clearScr
 			LDR			r4, =1000
@@ -73,6 +73,15 @@ loop
 			BL			printStr
 			
 			BL			gpioRead
+;---------	Print the Sram value to LCD from GPIORead subruntime
+			LDR			r0, =sramBase
+			LDR			r2, [r0, #0x3e7]
+			BL			printInt
+			
+			LDR			r0, =sramBase
+			LDR			r2, [r0, #0x3e6]
+			BL			printInt
+			
 			BL			toggleOnOff		
 
 ;---------- Call timer with R4 as parameter
@@ -398,18 +407,38 @@ gpioRead	proc
 			B			endRd	
 
 ;---------	read from sram 0x300 offset and R5 += 1
-			
 sum			LDR			r0, =sramBase
 			LDR			r2, [r0, #0x3e6]
+			LDR			r3, [r0, #0x3e7]
+
+;---------- Sum to values less or equal to 9 -> So LCD can show it
 			ADD			r2, r2, #1
+
+			CMP			r2, #10
 			
-;---------	Move to SRAM the new value to R5
-			STR 		r2, [r0, #0x3e6]
+			BLT			store						
 
-;---------	Print the Sram value to LCD
-			BL			printInt
+;---------- Increment the dec and starts incrementing the unit
+			ADD			r3, r3, #1
+			LDR			r2, =0			
+			
+			CMP			r3, #10
+			
+			BLT			store2dig
+			
+			LDR			r3, =0
+			
+			B			toEndRd
+			
+;---------	Move to SRAM the new value to R2
+store		STR 		r2, [r0, #0x3e6]
+			B			toEndRd
 
+;---------	Runtime to store 2 digits to LCD
+store2dig	STR 		r2, [r0, #0x3e6]
+			STR			r3, [r0, #0x3e7]
 
+toEndRd				
 ;---------	Delay debounce
 			LDR	 	R0, =1000
 			;LDR	 		R0, =1	
